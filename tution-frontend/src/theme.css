@@ -1,0 +1,762 @@
+/* ==========================================================================
+   TUITION CLASS MANAGER — DESIGN SYSTEM
+   A calm, trustworthy "school ledger" look: deep teal + warm amber on soft
+   paper, serif numerals for emphasis, clean sans for everything you read.
+   ========================================================================== */
+
+/* --- 1. Design tokens -------------------------------------------------- */
+:root {
+  /* Brand palette */
+  --tc-teal-900: #0A4E43;
+  --tc-teal-700: #0F6B5C;
+  --tc-teal-500: #16856F;
+  --tc-teal-100: #E1F0EB;
+  --tc-teal-50:  #F1F8F5;
+
+  --tc-amber-700: #C68C22;
+  --tc-amber-500: #E2A83A;
+  --tc-amber-100: #FBF1DD;
+
+  --tc-ink-900: #16211D;
+  --tc-ink-700: #3A4642;
+  --tc-ink-500: #5B6B66;
+  --tc-ink-300: #8C9A95;
+
+  --tc-paper: #F6F6F2;
+  --tc-surface: #FFFFFF;
+  --tc-border: #E2E5E1;
+
+  --tc-red-700: #A63A32;
+  --tc-red-500: #C1443B;
+  --tc-red-100: #FBEAE8;
+
+  --tc-green-700: #276E48;
+  --tc-green-500: #2F8558;
+  --tc-green-100: #E7F4EC;
+
+  --tc-slate-700: #2F5468;
+  --tc-slate-500: #3D6E8C;
+  --tc-slate-100: #E7F0F5;
+
+  --tc-radius-sm: 8px;
+  --tc-radius: 12px;
+  --tc-radius-lg: 18px;
+  --tc-shadow-sm: 0 1px 2px rgba(22, 33, 29, 0.06);
+  --tc-shadow: 0 4px 16px rgba(22, 33, 29, 0.08);
+  --tc-shadow-lg: 0 12px 32px rgba(22, 33, 29, 0.14);
+
+  --tc-font-display: 'Fraunces', Georgia, serif;
+  --tc-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* --- Bootstrap variable overrides (only vars Bootstrap actually reads) --- */
+  --bs-body-bg: var(--tc-paper);
+  --bs-body-color: var(--tc-ink-900);
+  --bs-body-font-family: var(--tc-font-body);
+  --bs-emphasis-color: var(--tc-ink-900);
+
+  --bs-border-color: var(--tc-border);
+  --bs-border-color-translucent: var(--tc-border);
+  --bs-border-radius: var(--tc-radius-sm);
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: var(--tc-radius);
+  --bs-border-radius-xl: var(--tc-radius-lg);
+
+  --bs-link-color: var(--tc-teal-700);
+  --bs-link-color-rgb: 15, 107, 92;
+  --bs-link-hover-color: var(--tc-teal-900);
+  --bs-link-hover-color-rgb: 10, 78, 67;
+
+  --bs-primary: var(--tc-teal-700);
+  --bs-primary-rgb: 15, 107, 92;
+  --bs-primary-text-emphasis: var(--tc-teal-900);
+  --bs-primary-bg-subtle: var(--tc-teal-100);
+  --bs-primary-border-subtle: #BFE0D6;
+
+  --bs-secondary: var(--tc-ink-500);
+  --bs-secondary-rgb: 91, 107, 102;
+  --bs-secondary-text-emphasis: var(--tc-ink-700);
+  --bs-secondary-bg-subtle: #ECEEEC;
+  --bs-secondary-border-subtle: #D8DCDA;
+
+  --bs-success: var(--tc-green-500);
+  --bs-success-rgb: 47, 133, 88;
+  --bs-success-text-emphasis: var(--tc-green-700);
+  --bs-success-bg-subtle: var(--tc-green-100);
+  --bs-success-border-subtle: #C6E6D3;
+
+  --bs-danger: var(--tc-red-500);
+  --bs-danger-rgb: 193, 68, 59;
+  --bs-danger-text-emphasis: var(--tc-red-700);
+  --bs-danger-bg-subtle: var(--tc-red-100);
+  --bs-danger-border-subtle: #F3CAC6;
+
+  --bs-warning: var(--tc-amber-500);
+  --bs-warning-rgb: 226, 168, 58;
+  --bs-warning-text-emphasis: var(--tc-amber-700);
+  --bs-warning-bg-subtle: var(--tc-amber-100);
+  --bs-warning-border-subtle: #F0DBA9;
+
+  --bs-info: var(--tc-slate-500);
+  --bs-info-rgb: 61, 110, 140;
+  --bs-info-text-emphasis: var(--tc-slate-700);
+  --bs-info-bg-subtle: var(--tc-slate-100);
+  --bs-info-border-subtle: #CBDEE8;
+
+  --bs-dark: var(--tc-ink-900);
+  --bs-dark-rgb: 22, 33, 29;
+  --bs-light: var(--tc-paper);
+  --bs-light-rgb: 246, 246, 242;
+}
+
+/* --- 2. Base type ------------------------------------------------------- */
+body {
+  font-family: var(--tc-font-body);
+  color: var(--tc-ink-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .fw-display {
+  font-family: var(--tc-font-display);
+  font-weight: 600;
+  color: var(--tc-ink-900);
+  letter-spacing: -0.01em;
+}
+
+h4, h5, h6 {
+  font-family: var(--tc-font-body);
+  font-weight: 700;
+  color: var(--tc-ink-900);
+}
+
+/* Numerals that deserve emphasis (money, counts) get the display face */
+.tc-figure {
+  font-family: var(--tc-font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 3. Buttons ---------------------------------------------------------
+   Bootstrap bakes button colors as literal hex per-variant at compile time,
+   so root variable overrides above don't reach them — override explicitly. */
+.btn {
+  font-weight: 600;
+  border-radius: var(--tc-radius-sm);
+  padding: 0.5rem 1.1rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-sm { border-radius: 7px; }
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--tc-teal-700);
+  --bs-btn-border-color: var(--tc-teal-700);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--tc-teal-900);
+  --bs-btn-hover-border-color: var(--tc-teal-900);
+  --bs-btn-active-bg: var(--tc-teal-900);
+  --bs-btn-active-border-color: var(--tc-teal-900);
+  --bs-btn-disabled-bg: var(--tc-teal-700);
+  --bs-btn-disabled-border-color: var(--tc-teal-700);
+  --bs-btn-focus-shadow-rgb: 15, 107, 92;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--tc-teal-700);
+  --bs-btn-border-color: var(--tc-teal-700);
+  --bs-btn-hover-bg: var(--tc-teal-700);
+  --bs-btn-hover-border-color: var(--tc-teal-700);
+  --bs-btn-active-bg: var(--tc-teal-900);
+  --bs-btn-active-border-color: var(--tc-teal-900);
+  --bs-btn-focus-shadow-rgb: 15, 107, 92;
+}
+.btn-secondary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--tc-ink-500);
+  --bs-btn-border-color: var(--tc-ink-500);
+  --bs-btn-hover-bg: var(--tc-ink-700);
+  --bs-btn-hover-border-color: var(--tc-ink-700);
+  --bs-btn-active-bg: var(--tc-ink-700);
+  --bs-btn-active-border-color: var(--tc-ink-700);
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--tc-ink-500);
+  --bs-btn-border-color: var(--tc-border);
+  --bs-btn-hover-bg: var(--tc-ink-900);
+  --bs-btn-hover-border-color: var(--tc-ink-900);
+  --bs-btn-active-bg: var(--tc-ink-900);
+  --bs-btn-active-border-color: var(--tc-ink-900);
+}
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--tc-green-500);
+  --bs-btn-border-color: var(--tc-green-500);
+  --bs-btn-hover-bg: var(--tc-green-700);
+  --bs-btn-hover-border-color: var(--tc-green-700);
+  --bs-btn-active-bg: var(--tc-green-700);
+  --bs-btn-active-border-color: var(--tc-green-700);
+}
+.btn-outline-success {
+  --bs-btn-color: var(--tc-green-500);
+  --bs-btn-border-color: var(--tc-green-500);
+  --bs-btn-hover-bg: var(--tc-green-500);
+  --bs-btn-hover-border-color: var(--tc-green-500);
+}
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--tc-red-500);
+  --bs-btn-border-color: var(--tc-red-500);
+  --bs-btn-hover-bg: var(--tc-red-700);
+  --bs-btn-hover-border-color: var(--tc-red-700);
+  --bs-btn-active-bg: var(--tc-red-700);
+  --bs-btn-active-border-color: var(--tc-red-700);
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--tc-red-500);
+  --bs-btn-border-color: var(--tc-red-500);
+  --bs-btn-hover-bg: var(--tc-red-500);
+  --bs-btn-hover-border-color: var(--tc-red-500);
+}
+.btn-warning {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--tc-amber-500);
+  --bs-btn-border-color: var(--tc-amber-500);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--tc-amber-700);
+  --bs-btn-hover-border-color: var(--tc-amber-700);
+  --bs-btn-active-color: #fff;
+}
+.btn-outline-warning {
+  --bs-btn-color: var(--tc-amber-700);
+  --bs-btn-border-color: var(--tc-amber-500);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--tc-amber-500);
+  --bs-btn-hover-border-color: var(--tc-amber-500);
+}
+.btn-dark {
+  --bs-btn-bg: var(--tc-ink-900);
+  --bs-btn-border-color: var(--tc-ink-900);
+  --bs-btn-hover-bg: #000;
+  --bs-btn-hover-border-color: #000;
+}
+.btn-outline-light {
+  --bs-btn-color: #fff;
+  --bs-btn-border-color: rgba(255, 255, 255, 0.55);
+  --bs-btn-hover-bg: rgba(255, 255, 255, 0.15);
+  --bs-btn-hover-border-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+/* --- 4. Forms ------------------------------------------------------------ */
+.form-control, .form-select {
+  border-radius: var(--tc-radius-sm);
+  border-color: var(--tc-border);
+  padding: 0.55rem 0.85rem;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--tc-teal-500);
+  box-shadow: 0 0 0 0.2rem rgba(15, 107, 92, 0.15);
+}
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--tc-ink-700);
+  margin-bottom: 0.35rem;
+}
+.form-check-input:checked {
+  background-color: var(--tc-teal-700);
+  border-color: var(--tc-teal-700);
+}
+
+/* --- 5. Cards & surfaces -------------------------------------------------- */
+.card {
+  border-radius: var(--tc-radius);
+  box-shadow: var(--tc-shadow-sm);
+}
+.card-header {
+  background-color: var(--tc-surface);
+  border-bottom: 1px solid var(--tc-border);
+  font-weight: 700;
+  border-top-left-radius: var(--tc-radius) !important;
+  border-top-right-radius: var(--tc-radius) !important;
+}
+
+/* --- 6. Tables ------------------------------------------------------------ */
+.table {
+  --bs-table-hover-bg: var(--tc-teal-50);
+  vertical-align: middle;
+}
+.table thead th {
+  font-size: 0.78rem;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--tc-ink-500);
+  font-weight: 700;
+  border-bottom-width: 1px;
+  background-color: var(--tc-paper);
+}
+
+/* --- 7. Badges ------------------------------------------------------------ */
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.4em 0.75em;
+}
+
+/* --- 8. Nav pills / tabs --------------------------------------------------- */
+.nav-tabs .nav-link.active {
+  color: var(--tc-teal-700);
+  border-color: var(--tc-border) var(--tc-border) var(--tc-surface);
+  font-weight: 700;
+}
+.nav-tabs .nav-link {
+  color: var(--tc-ink-500);
+}
+
+/* --- 9a. App shell: sidebar layout ------------------------------------------ */
+.tc-app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+@media (min-width: 1200px) {
+  .tc-app-shell {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+.tc-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  background: linear-gradient(180deg, var(--tc-teal-900), var(--tc-teal-700) 85%);
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1rem;
+  overflow-y: auto;
+}
+.tc-sidebar .tc-sidebar-brand {
+  font-family: var(--tc-font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #fff;
+  padding: 0.25rem 0.5rem 1.25rem;
+  display: block;
+}
+.tc-sidebar-logo {
+  max-width: 100%;
+  height: 32px;
+  width: auto;
+  display: block;
+}
+.tc-mobile-topbar .tc-sidebar-brand {
+  padding: 0;
+  margin: 0;
+}
+.tc-mobile-topbar .tc-sidebar-logo {
+  height: 26px;
+}
+.tc-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+.tc-sidebar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.6rem 0.75rem !important;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tc-sidebar-nav .nav-link:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.tc-sidebar-nav .nav-link.active {
+  color: var(--tc-teal-900) !important;
+  background-color: #fff;
+}
+.tc-sidebar-scan-btn {
+  margin: 0.5rem 0 1rem;
+}
+.tc-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 0.85rem;
+  margin-top: 0.75rem;
+}
+.tc-sidebar-footer .tc-teacher-chip {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.6rem;
+  word-break: break-word;
+}
+.tc-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mobile/tablet: slim top bar with a menu toggle; the fixed sidebar is hidden
+   and swapped for an Offcanvas drawer using the same nav markup. */
+.tc-mobile-topbar {
+  background: var(--tc-teal-900);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+.tc-offcanvas-nav.offcanvas {
+  background: linear-gradient(180deg, var(--tc-teal-900), var(--tc-teal-700) 85%);
+}
+.tc-offcanvas-nav .offcanvas-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.tc-offcanvas-nav .offcanvas-body {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+/* --- 10. Page header --------------------------------------------------- */
+.tc-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.tc-page-header h1 {
+  font-size: 1.65rem;
+  margin-bottom: 0.15rem;
+}
+.tc-page-header p {
+  color: var(--tc-ink-500);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+.tc-eyebrow {
+  color: var(--tc-teal-700);
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+/* --- 11. Stat cards (dashboard) ----------------------------------------- */
+.tc-stat-card {
+  background: var(--tc-surface);
+  border: 1px solid var(--tc-border);
+  border-left: 4px solid var(--tc-teal-700);
+  border-radius: var(--tc-radius);
+  padding: 1.1rem 1.3rem;
+  box-shadow: var(--tc-shadow-sm);
+  height: 100%;
+}
+.tc-stat-card.tc-accent-amber { border-left-color: var(--tc-amber-500); }
+.tc-stat-card.tc-accent-green { border-left-color: var(--tc-green-500); }
+.tc-stat-card.tc-accent-slate { border-left-color: var(--tc-slate-500); }
+.tc-stat-card .tc-stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--tc-ink-500);
+  text-transform: none;
+  margin-bottom: 0.3rem;
+}
+.tc-stat-card .tc-stat-value {
+  font-family: var(--tc-font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--tc-ink-900);
+  line-height: 1.1;
+}
+.tc-stat-card .tc-stat-sub {
+  font-size: 0.82rem;
+  color: var(--tc-ink-500);
+  margin-top: 0.25rem;
+}
+
+/* --- 12. Auth pages (split layout) --------------------------------------- */
+.tc-auth-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  background: var(--tc-paper);
+}
+.tc-auth-brand-panel {
+  flex: 1 1 44%;
+  background: radial-gradient(circle at 20% 20%, var(--tc-teal-500), var(--tc-teal-900) 70%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+  align-items: flex-start;
+}
+.tc-auth-logo {
+  height: 44px;
+  width: auto;
+  max-width: 260px;
+}
+.tc-auth-brand-panel h1 {
+  font-family: var(--tc-font-display);
+  font-size: 2.4rem;
+  color: #fff;
+  max-width: 420px;
+  line-height: 1.15;
+}
+.tc-auth-brand-panel p {
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 380px;
+  font-size: 1.02rem;
+}
+.tc-auth-form-panel {
+  flex: 1 1 56%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.tc-auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+.tc-auth-card .tc-eyebrow { text-align: left; }
+@media (max-width: 900px) {
+  .tc-auth-brand-panel { display: none; }
+}
+
+/* --- 13. Skeleton loaders ------------------------------------------------ */
+.tc-skeleton {
+  background: linear-gradient(90deg, #EDEFEC 25%, #E4E7E2 37%, #EDEFEC 63%);
+  background-size: 400% 100%;
+  animation: tc-shimmer 1.4s ease infinite;
+  border-radius: 6px;
+  display: block;
+}
+@keyframes tc-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tc-skeleton { animation: none; }
+}
+
+/* --- 14. Misc utility -------------------------------------------------- */
+.tc-empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--tc-ink-500);
+}
+.tc-section-card {
+  background: var(--tc-surface);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius);
+  box-shadow: var(--tc-shadow-sm);
+}
+.tc-muted-card {
+  background: var(--tc-teal-50);
+  border: 1px dashed var(--tc-teal-100);
+  border-radius: var(--tc-radius);
+}
+a { text-decoration: none; }
+
+/* --- 15. Responsive / phone refinements ---------------------------------- */
+
+/* Mobile-only brand banner on the login pages (the split brand panel is hidden < 900px) */
+.tc-auth-mobile-brand {
+  display: none;
+  background: linear-gradient(135deg, var(--tc-teal-700), var(--tc-teal-900));
+  border-radius: var(--tc-radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.tc-auth-mobile-brand--dark {
+  background: linear-gradient(135deg, var(--tc-ink-700), var(--tc-ink-900));
+}
+.tc-auth-mobile-brand img {
+  height: 34px;
+  width: auto;
+  max-width: 100%;
+}
+@media (max-width: 900px) {
+  .tc-auth-mobile-brand { display: block; }
+}
+
+/* Phones */
+@media (max-width: 767.98px) {
+  /* iOS Safari zooms the page when a focused input has a font-size under 16px.
+     Bootstrap's -sm variants are 14px, so force 16px on touch-sized screens. */
+  .form-control, .form-select,
+  .form-control.form-control-sm, .form-select.form-select-sm {
+    font-size: 16px;
+  }
+
+  /* Tighter gutters so content doesn't feel squeezed by side padding */
+  .tc-main .container-xl,
+  .tc-main .container-fluid,
+  .tc-main .container {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  .tc-page-header { margin-bottom: 1rem; }
+  .tc-page-header h1 { font-size: 1.4rem; }
+
+  .tc-stat-card { padding: 0.95rem 1rem; }
+  .tc-stat-card .tc-stat-value { font-size: 1.65rem; }
+
+  .tc-auth-form-panel { padding: 1.25rem; }
+
+  /* Buttons that sit in card headers / toolbars stay comfortably tappable */
+  .btn-sm { padding: 0.4rem 0.7rem; }
+
+  /* Tables: slightly smaller text so more fits before horizontal scroll kicks in */
+  .table { font-size: 0.9rem; }
+
+  /* Modals use the full width minus a small margin */
+  .modal-dialog { margin: 0.5rem; }
+}
+
+/* Very small phones (e.g. iPhone SE / 320px) */
+@media (max-width: 359.98px) {
+  .tc-page-header h1 { font-size: 1.25rem; }
+  .tc-stat-card .tc-stat-value { font-size: 1.45rem; }
+}
+
+/* --- 16. Accessibility: contrast on amber (warning) surfaces ------------------
+   White text on the amber brand color is only ~2:1 contrast; use dark ink. */
+.btn-warning,
+.btn-warning:hover,
+.btn-warning:active,
+.btn-warning:focus-visible {
+  --bs-btn-color: var(--tc-ink-900);
+  --bs-btn-hover-color: var(--tc-ink-900);
+  --bs-btn-active-color: var(--tc-ink-900);
+  color: var(--tc-ink-900);
+}
+.btn-outline-warning:hover,
+.btn-outline-warning:active {
+  --bs-btn-hover-color: var(--tc-ink-900);
+  --bs-btn-active-color: var(--tc-ink-900);
+  color: var(--tc-ink-900);
+}
+.badge.bg-warning,
+.badge.text-bg-warning {
+  color: var(--tc-ink-900) !important;
+}
+
+/* --- 17. Stacked "card" tables on phones ---------------------------------------
+   Wide data tables force sideways scrolling on a phone, which hides the very
+   controls people need (amount field, Paid button, Remind, Edit...).
+   Below 768px each row becomes a card; every <td data-label="..."> shows its
+   label on the left and its value on the right. Desktop is untouched. */
+.tc-wrap-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+
+@media (max-width: 767.98px) {
+  .tc-stack-table,
+  .tc-stack-table tbody,
+  .tc-stack-table tr,
+  .tc-stack-table td { display: block; width: 100%; }
+
+  .tc-stack-table thead { display: none; }
+
+  .tc-stack-table { border: 0 !important; background: transparent; }
+
+  .tc-stack-table tr {
+    background: var(--tc-surface);
+    border: 1px solid var(--tc-border);
+    border-radius: var(--tc-radius);
+    box-shadow: var(--tc-shadow-sm);
+    margin: 0 0 0.75rem;
+    padding: 0.35rem 0.9rem;
+  }
+
+  .tc-stack-table td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem 1rem;
+    min-width: 0 !important;
+    padding: 0.5rem 0 !important;
+    border: 0 !important;
+    border-bottom: 1px dashed var(--tc-border) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .tc-stack-table td:last-child { border-bottom: 0 !important; }
+
+  .tc-stack-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--tc-ink-500);
+    text-align: left;
+  }
+  .tc-stack-table td:not([data-label])::before { display: none; }
+
+  /* Long values (location names, emails) wrap inside their pill instead of pushing the card wider */
+  .tc-stack-table td .badge {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+
+  /* The main identifier of each card (name) reads as a heading */
+  .tc-stack-table td.tc-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .tc-stack-table td.tc-card-title::before { display: none; }
+
+  /* Action rows: buttons fill the card instead of hugging the right edge */
+  .tc-stack-table td.tc-actions-cell {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.7rem !important;
+  }
+  .tc-stack-table td.tc-actions-cell .btn { margin: 0 !important; }
+  .tc-stack-table td.tc-actions-full .btn { flex: 1 1 100%; }
+
+  /* Amount cell: label on its own line, input group at full width beneath it */
+  .tc-stack-table td.tc-amount-cell { flex-wrap: wrap; }
+  .tc-stack-table td.tc-amount-cell .input-group { width: 100%; flex: 1 1 100%; }
+
+  /* Empty-state / message rows spanning all columns */
+  .tc-stack-table td[colspan] { justify-content: center; text-align: center; }
+  .tc-stack-table td[colspan]::before { display: none; }
+
+  /* Cards already provide their own separation, so the table wrapper needs no chrome */
+  .table-responsive:has(> .tc-stack-table) { overflow: visible; }
+}
+
+/* An odd final item in a 2-up phone grid spans the full row rather than sitting orphaned */
+@media (max-width: 767.98px) {
+  .row.row-cols-2 > :last-child:nth-child(odd) {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+
