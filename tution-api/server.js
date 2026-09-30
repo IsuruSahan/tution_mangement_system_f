@@ -41,14 +41,56 @@ app.use(express.json());
 // --- Database Connection ---
 const dbUri = process.env.MONGODB_URI;
 
+// Without this, a lost connection just queues every query silently until it
+// times out 10s later (the "buffering timed out" error) - with it, a query
+// made while disconnected fails INSTANTLY with a clear error instead of
+// hanging, and the middleware below turns that into a friendly response.
+mongoose.set('bufferCommands', false);
+
+function connectDB() {
+    return mongoose.connect(dbUri, {
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+    })
+        .then(() => console.log('✅ MongoDB connected successfully!'))
+        .catch(err => {
+            console.error('❌ MongoDB connection error:', err.message);
+            console.log('   Retrying in 5 seconds...');
+            setTimeout(connectDB, 5000);
+        });
+}
+
 if (!dbUri) {
     console.error('❌ CRITICAL ERROR: MONGODB_URI is not defined!');
 } else {
     console.log("✅ Attempting DB connection...");
-    mongoose.connect(dbUri)
-    .then(() => console.log('✅ MongoDB connected successfully!'))
-    .catch(err => console.error('❌ MongoDB connection error:', err.message));
+    connectDB();
 }
+
+// --- Keep the connection alive across drops (laptop sleep, network blips,
+// Atlas idle timeouts) instead of staying broken until the server is restarted ---
+mongoose.connection.on('disconnected', () => {
+    console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+    if (dbUri) setTimeout(connectDB, 3000);
+});
+mongoose.connection.on('reconnected', () => {
+    console.log('✅ MongoDB reconnected.');
+});
+mongoose.connection.on('error', (err) => {
+    console.error('❌ MongoDB connection error event:', err.message);
+});
+
+// --- If a request comes in while the DB is down, fail fast with a clear
+// message instead of the raw "buffering timed out" Mongoose error reaching
+// the frontend as confusing technical text. ---
+app.use((req, res, next) => {
+    if (req.path === '/' || mongoose.connection.readyState === 1) {
+        return next();
+    }
+    return res.status(503).json({
+        message: 'The database is temporarily unavailable. Please try again in a few seconds.'
+    });
+});
 
 // --- API Routes ---
 app.use('/api/auth', require('./routes/auth'));
