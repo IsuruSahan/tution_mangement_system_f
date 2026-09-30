@@ -1,5 +1,4 @@
-// 1. THIS IS THE MISSING LINE! It must be at the very top.
-require('dotenv').config(); 
+require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -7,12 +6,9 @@ const cors = require('cors');
 
 const app = express();
 
-// Vercel sits in front of this app as a reverse proxy, so without this,
-// express-rate-limit (and req.ip generally) would see Vercel's internal IP
-// for every request instead of the real visitor's IP.
+// Vercel sits in front of this app as a reverse proxy
 app.set('trust proxy', 1);
 
-// Now this log will actually show your URI instead of "undefined"
 console.log("🔍 process.env.MONGODB_URI:", process.env.MONGODB_URI ? "✅ Found" : "❌ Still Undefined");
 console.log("🔍 process.env.JWT_SECRET:", process.env.JWT_SECRET ? "✅ Found" : "❌ Still Undefined");
 
@@ -38,55 +34,52 @@ app.use(cors({
 
 app.use(express.json());
 
-// --- Database Connection ---
+// --- Database Connection Cache for Serverless (Vercel) ---
 const dbUri = process.env.MONGODB_URI;
-
-// Without this, a lost connection just queues every query silently until it
-// times out 10s later (the "buffering timed out" error) - with it, a query
-// made while disconnected fails INSTANTLY with a clear error instead of
-// hanging, and the middleware below turns that into a friendly response.
 mongoose.set('bufferCommands', false);
 
-function connectDB() {
-    return mongoose.connect(dbUri, {
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-    })
-        .then(() => console.log('✅ MongoDB connected successfully!'))
-        .catch(err => {
-            console.error('❌ MongoDB connection error:', err.message);
-            console.log('   Retrying in 5 seconds...');
-            setTimeout(connectDB, 5000);
+let cachedConnection = null;
+
+async function connectDB() {
+    if (cachedConnection && mongoose.connection.readyState === 1) {
+        return;
+    }
+
+    try {
+        cachedConnection = await mongoose.connect(dbUri, {
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
         });
+        console.log('✅ MongoDB connected successfully!');
+    } catch (err) {
+        console.error('❌ MongoDB connection error:', err.message);
+        cachedConnection = null;
+        throw err;
+    }
 }
 
 if (!dbUri) {
     console.error('❌ CRITICAL ERROR: MONGODB_URI is not defined!');
-} else {
-    console.log("✅ Attempting DB connection...");
-    connectDB();
 }
 
-// --- Keep the connection alive across drops (laptop sleep, network blips,
-// Atlas idle timeouts) instead of staying broken until the server is restarted ---
-mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
-    if (dbUri) setTimeout(connectDB, 3000);
-});
-mongoose.connection.on('reconnected', () => {
-    console.log('✅ MongoDB reconnected.');
-});
-mongoose.connection.on('error', (err) => {
-    console.error('❌ MongoDB connection error event:', err.message);
-});
-
-// --- If a request comes in while the DB is down, fail fast with a clear
-// message instead of the raw "buffering timed out" Mongoose error reaching
-// the frontend as confusing technical text. ---
-app.use((req, res, next) => {
-    if (req.path === '/' || mongoose.connection.readyState === 1) {
+// --- Serverless Middleware to Ensure Connection Before Handling API Routes ---
+app.use(async (req, res, next) => {
+    if (req.path === '/') {
         return next();
     }
+
+    try {
+        if (!dbUri) {
+            return res.status(500).json({ message: 'Server configuration error: Database URI missing.' });
+        }
+        await connectDB();
+        if (mongoose.connection.readyState === 1) {
+            return next();
+        }
+    } catch (error) {
+        console.error('Database middleware connection failure:', error.message);
+    }
+
     return res.status(503).json({
         message: 'The database is temporarily unavailable. Please try again in a few seconds.'
     });
@@ -111,9 +104,12 @@ app.get('/', (req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// For local testing vs Vercel serverless export
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+}
 
 module.exports = app;
