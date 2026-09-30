@@ -34,27 +34,40 @@ app.use(cors({
 
 app.use(express.json());
 
-// --- Database Connection Cache for Serverless (Vercel) ---
+// --- Database Connection Cache & Queue for Serverless (Vercel) ---
 const dbUri = process.env.MONGODB_URI;
 mongoose.set('bufferCommands', false);
 
-let cachedConnection = null;
+let isConnecting = false;
 
-async function connectDB() {
-    if (cachedConnection && mongoose.connection.readyState === 1) {
-        return;
+async function ensureDBConnected() {
+    if (mongoose.connection.readyState === 1) {
+        return true;
+    }
+
+    if (isConnecting) {
+        // If another incoming request is already attempting connection, wait for it
+        let retries = 30; // Wait up to 3 seconds total
+        while (retries > 0 && mongoose.connection.readyState !== 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries--;
+        }
+        return mongoose.connection.readyState === 1;
     }
 
     try {
-        cachedConnection = await mongoose.connect(dbUri, {
-            serverSelectionTimeoutMS: 10000,
+        isConnecting = true;
+        await mongoose.connect(dbUri, {
+            serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
         });
         console.log('✅ MongoDB connected successfully!');
+        isConnecting = false;
+        return true;
     } catch (err) {
         console.error('❌ MongoDB connection error:', err.message);
-        cachedConnection = null;
-        throw err;
+        isConnecting = false;
+        return false;
     }
 }
 
@@ -68,16 +81,14 @@ app.use(async (req, res, next) => {
         return next();
     }
 
-    try {
-        if (!dbUri) {
-            return res.status(500).json({ message: 'Server configuration error: Database URI missing.' });
-        }
-        await connectDB();
-        if (mongoose.connection.readyState === 1) {
-            return next();
-        }
-    } catch (error) {
-        console.error('Database middleware connection failure:', error.message);
+    if (!dbUri) {
+        return res.status(500).json({ message: 'Server configuration error: Database URI missing.' });
+    }
+
+    const connected = await ensureDBConnected();
+
+    if (connected && mongoose.connection.readyState === 1) {
+        return next();
     }
 
     return res.status(503).json({
